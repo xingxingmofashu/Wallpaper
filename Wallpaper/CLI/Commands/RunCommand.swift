@@ -48,49 +48,106 @@ struct RunOptions {
 
 struct RunCommand: Command {
     let name = "run"
-    let summary = "<video> [options]  Play video wallpaper"
+    let summary = "<video> [options]  Play video wallpaper in background"
     let optionsHelp = """
         Options:
           --single              Cover only the main display (default: all screens)
           --rate <0.1-1.0>      Max playback rate to lower CPU/GPU load (default: 1.0)
           --stall <seconds>     Auto-exit after playback stalls this long, 0 disables (default: 8)
           --watchdog <seconds>  Auto-exit if UI is unresponsive this long, 0 disables (default: 6)
+
+        The command returns immediately; the wallpaper keeps playing after the
+        terminal is closed. Stop it with `vw stop`. Errors go to ~/.vw/vw.log.
         """
 
     func execute(arguments: [String]) -> Int32 {
+        guard let input = validatedInput(arguments) else { return 1 }
+        return startDetached(videoURL: input.videoURL, options: input.options)
+    }
+
+    /// Internal entry for the detached daemon process.
+    func executeDaemon(arguments: [String]) -> Int32 {
+        let args = arguments.first == "run" ? Array(arguments.dropFirst()) : arguments
+        guard let input = validatedInput(args) else { return 1 }
+        return runDaemon(videoURL: input.videoURL, options: input.options)
+    }
+
+    private func validatedInput(_ arguments: [String]) -> (videoURL: URL, options: RunOptions)? {
         guard let videoPath = arguments.first, !videoPath.hasPrefix("-") else {
             Console.error("Missing video path")
             Console.info(HelpCommand().usage())
-            return 1
+            return nil
         }
         let videoURL = URL(fileURLWithPath: videoPath)
         guard FileManager.default.fileExists(atPath: videoURL.path) else {
             Console.error("File not found: \(videoURL.path)")
-            return 1
+            return nil
         }
-
         let options: RunOptions
         do {
             options = try RunOptions.parse(Array(arguments.dropFirst()))
         } catch {
             Console.error("\(error.localizedDescription)")
+            return nil
+        }
+        return (videoURL, options)
+    }
+
+    private func startDetached(videoURL: URL, options: RunOptions) -> Int32 {
+        let pidFile = PIDFile.shared
+        let dataDir = pidFile.url.deletingLastPathComponent()
+        let logURL = dataDir.appendingPathComponent("vw.log")
+
+        if let existing = pidFile.pid, pidFile.isLiveSelf(existing) {
+            Console.error("Another instance is running (PID \(existing)), run `\(Version.name) stop` first")
             return 1
         }
 
-        return runApplication(videoURL: videoURL, options: options)
+        do {
+            try FileManager.default.createDirectory(at: dataDir, withIntermediateDirectories: true)
+            FileManager.default.createFile(atPath: logURL.path, contents: nil)
+        } catch {
+            Console.error("Failed to create \(dataDir.path): \(error.localizedDescription)")
+            return 1
+        }
+
+        do {
+            let command = ["run", videoURL.path] + optionArguments(options)
+            let pid = try Daemon.spawn(detachedCommand: command, logURL: logURL)
+            Console.info("Started (PID \(pid))")
+            return 0
+        } catch {
+            Console.error("Failed to start: \(error.localizedDescription)")
+            return 1
+        }
     }
 
-    private func runApplication(videoURL: URL, options: RunOptions) -> Int32 {
+    private func optionArguments(_ options: RunOptions) -> [String] {
+        var args: [String] = []
+        if options.singleScreen { args.append("--single") }
+        args.append("--rate")
+        args.append(String(options.rate))
+        args.append("--stall")
+        args.append(String(Int(options.stallLimit)))
+        args.append("--watchdog")
+        args.append(String(Int(options.watchdogLimit)))
+        return args
+    }
+
+    private func runDaemon(videoURL: URL, options: RunOptions) -> Int32 {
         let pidFile = PIDFile.shared
+
+        signal(SIGHUP, SIG_IGN)
+
         switch pidFile.acquire() {
         case .acquired:
             break
         case .alreadyRunning(let existing):
-            Console.error("Another instance is running (PID \(existing)), run `\(Version.name) stop` first")
-            return 1
+            Console.error("Another instance is running (PID \(existing)), exiting")
+            exit(1)
         case .writeFailed(let error):
             Console.error("Failed to write PID file (\(pidFile.url.path)): \(error.localizedDescription)")
-            return 1
+            exit(1)
         }
 
         let app = NSApplication.shared

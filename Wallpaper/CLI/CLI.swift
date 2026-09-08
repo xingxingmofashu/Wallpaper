@@ -20,6 +20,9 @@ enum CLI {
         case "-v", "--version":
             return VersionCommand().execute(arguments: [])
         default:
+            if arguments[1] == Daemon.flag {
+                return RunCommand().executeDaemon(arguments: Array(arguments.dropFirst(2)))
+            }
             if let command = find(arguments[1]) {
                 return command.execute(arguments: Array(arguments.dropFirst(2)))
             }

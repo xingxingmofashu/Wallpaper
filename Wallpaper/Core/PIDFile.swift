@@ -1,5 +1,4 @@
 import Foundation
-import Darwin
 
 final class PIDFile {
     static let shared = PIDFile()
@@ -43,16 +42,9 @@ final class PIDFile {
 
     func isLiveSelf(_ pid: pid_t) -> Bool {
         guard pid > 0, kill(pid, 0) == 0 else { return false }
-        guard let target = executablePath(of: pid),
-              let own = executablePath(of: ProcessInfo.processInfo.processIdentifier)
+        guard let target = pid.executablePath,
+              let own = ProcessInfo.processInfo.processIdentifier.executablePath
         else { return false }
         return target == own
-    }
-
-    private func executablePath(of pid: pid_t) -> String? {
-        var buffer = [CChar](repeating: 0, count: 4096)
-        let size = proc_pidpath(pid, &buffer, UInt32(buffer.count))
-        guard size > 0 else { return nil }
-        return String(cString: buffer)
     }
 }
