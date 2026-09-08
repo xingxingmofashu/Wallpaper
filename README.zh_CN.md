@@ -18,6 +18,8 @@
   <a href="https://github.com/xingxingmofashu/Wallpaper/releases/latest"><img src=".github/assets/preview.png" alt="vw 壁纸预览" width="800" /></a>
 </p>
 
+<p align="center"><sub>预览图来源于艺术家 <a href="https://www.wlop.art">WLOP</a></sub></p>
+
 </div>
 
 ---
