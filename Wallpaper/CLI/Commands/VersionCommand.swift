@@ -3,7 +3,6 @@ import Foundation
 enum Version {
     static let number = "1.0.2"
     static let name = "vw"
-    static let bundleID = "com.example.vw"
     static let full = "\(name) \(number)"
 }
 

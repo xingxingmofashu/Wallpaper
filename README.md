@@ -65,6 +65,7 @@ the previous binary before copying, because overwriting a signed binary in place
 Uninstall:
 
 ```bash
+vw uninstall                                         # using the installed CLI
 ./Scripts/install.sh --uninstall                    # from a clone
 curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash -s -- --uninstall
 ```
@@ -74,7 +75,7 @@ curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scri
 ```text
 vw run <video> [options]   play video wallpaper in background
 vw stop                    stop the running instance
-vw uninstall               show manual uninstall steps
+vw uninstall               stop the instance, remove the binary and runtime data
 vw version                 show version
 vw help                    show full help
 ```

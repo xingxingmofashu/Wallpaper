@@ -64,6 +64,7 @@ cd Wallpaper
 卸载：
 
 ```bash
+vw uninstall                                         # 使用已安装的 vw
 ./Scripts/install.sh --uninstall                    # 在克隆的仓库内
 curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash -s -- --uninstall
 ```
@@ -73,7 +74,7 @@ curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scri
 ```text
 vw run <视频> [选项]   后台播放视频壁纸
 vw stop                停止当前实例
-vw uninstall           查看手动卸载步骤
+vw uninstall           停止实例并删除二进制与运行数据
 vw version             显示版本
 vw help                显示完整帮助
 ```

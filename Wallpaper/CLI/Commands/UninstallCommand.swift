@@ -2,15 +2,44 @@ import Foundation
 
 struct UninstallCommand: Command {
     let name = "uninstall"
-    let summary = "Show uninstall steps"
+    let summary = "Stop the instance, remove the binary and runtime data"
 
     func execute(arguments: [String]) -> Int32 {
-        Console.info("Uninstall steps:")
-        Console.info("  1. Stop the instance:      \(Version.name) stop")
-        Console.info("  2. Remove the binary:      sudo rm -f /usr/local/bin/\(Version.name)")
-        Console.info("  3. Remove the share dir:   sudo rm -rf /usr/local/share/\(Version.name)")
-        Console.info("  4. Forget the pkg receipt: sudo pkgutil --forget \(Version.bundleID)")
-        Console.info("  5. Remove runtime data:    rm -rf ~/.vw")
+        let stopStatus = StopCommand().execute(arguments: [])
+        guard stopStatus == 0 else { return 1 }
+
+        var failed = false
+
+        if let binaryPath = ProcessInfo.processInfo.processIdentifier.executablePath {
+            do {
+                try FileManager.default.removeItem(atPath: binaryPath)
+                Console.info("Removed \(binaryPath)")
+            } catch {
+                Console.error("Failed to remove \(binaryPath): \(error.localizedDescription)")
+                Console.error("Run manually: sudo rm -f \(binaryPath)")
+                failed = true
+            }
+        } else {
+            Console.error("Could not locate the running binary")
+            failed = true
+        }
+
+        let dataDir = PIDFile.shared.url.deletingLastPathComponent()
+        if FileManager.default.fileExists(atPath: dataDir.path) {
+            do {
+                try FileManager.default.removeItem(at: dataDir)
+                Console.info("Removed \(dataDir.path)")
+            } catch {
+                Console.error("Failed to remove \(dataDir.path): \(error.localizedDescription)")
+                failed = true
+            }
+        }
+
+        if failed {
+            Console.error("Uninstall incomplete")
+            return 1
+        }
+        Console.info("Uninstalled")
         return 0
     }
 }

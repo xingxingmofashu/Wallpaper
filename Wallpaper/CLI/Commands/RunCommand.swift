@@ -116,6 +116,13 @@ struct RunCommand: Command {
         let logURL = dataDir.appendingPathComponent("vw.log")
         let lockURL = dataDir.appendingPathComponent("vw.lock")
 
+        do {
+            try FileManager.default.createDirectory(at: dataDir, withIntermediateDirectories: true)
+        } catch {
+            Console.error("Failed to create \(dataDir.path): \(error.localizedDescription)")
+            return 1
+        }
+
         let lockFD = open(lockURL.path, O_CREAT | O_RDWR, 0o644)
         guard lockFD >= 0 else {
             Console.error("Failed to open \(lockURL.path): \(String(cString: strerror(errno)))")
@@ -137,13 +144,7 @@ struct RunCommand: Command {
             return 1
         }
 
-        do {
-            try FileManager.default.createDirectory(at: dataDir, withIntermediateDirectories: true)
-            FileManager.default.createFile(atPath: logURL.path, contents: nil)
-        } catch {
-            Console.error("Failed to create \(dataDir.path): \(error.localizedDescription)")
-            return 1
-        }
+        FileManager.default.createFile(atPath: logURL.path, contents: nil)
 
         do {
             let command = ["run", videoURL.path] + optionArguments(options)
