@@ -1,8 +1,22 @@
+<div align="center">
+
 # vw
 
-[English](README.md) | 简体中文
+**在终端里把一段循环视频设为 macOS 桌面壁纸。**
 
-在终端里把一段循环视频设为 macOS 桌面壁纸。
+<p align="center">
+  <a href="https://github.com/xingxingmofashu/Wallpaper/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/xingxingmofashu/Wallpaper?style=flat-square" /></a>
+  <a href="https://github.com/xingxingmofashu/Wallpaper/actions/workflows/ci.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/xingxingmofashu/Wallpaper/ci.yml?style=flat-square&branch=main" /></a>
+</p>
+
+<p align="center">
+  <a href="README.md">English</a> |
+  简体中文
+</p>
+
+</div>
+
+---
 
 ```bash
 vw run ~/Videos/wallpaper.mov      # 启动（立即返回）

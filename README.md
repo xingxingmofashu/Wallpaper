@@ -1,8 +1,22 @@
+<div align="center">
+
 # vw
 
-English | [简体中文](README.zh_CN.md)
+**Loop a video as your macOS desktop wallpaper from the terminal.**
 
-Loop a video as your macOS desktop wallpaper from the terminal.
+<p align="center">
+  <a href="https://github.com/xingxingmofashu/Wallpaper/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/xingxingmofashu/Wallpaper?style=flat-square" /></a>
+  <a href="https://github.com/xingxingmofashu/Wallpaper/actions/workflows/ci.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/xingxingmofashu/Wallpaper/ci.yml?style=flat-square&branch=main" /></a>
+</p>
+
+<p align="center">
+  <a href="README.md">English</a> |
+  <a href="README.zh_CN.md">简体中文</a>
+</p>
+
+</div>
+
+---
 
 ```bash
 vw run ~/Videos/wallpaper.mov      # start (returns immediately)
