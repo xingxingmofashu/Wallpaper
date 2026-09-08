@@ -174,6 +174,17 @@ final class Wallpaper: NSObject {
     }
 
     private func rebuildWindows() {
+        let target = options.singleScreen
+            ? NSScreen.main.map { [$0] } ?? []
+            : NSScreen.screens
+
+        if windows.count == target.count,
+           zip(windows, target).allSatisfy({ window, screen in
+               window.screen === screen && NSEqualRects(window.frame, screen.frame)
+           }) {
+            return
+        }
+
         teardownWindows()
         createWindows()
     }
