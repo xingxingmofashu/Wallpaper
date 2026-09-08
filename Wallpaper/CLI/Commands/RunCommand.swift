@@ -53,7 +53,7 @@ struct RunCommand: Command {
         Options:
           --single              Cover only the main display (default: all screens)
           --rate <0.1-1.0>      Max playback rate to lower CPU/GPU load (default: 1.0)
-          --stall <seconds>     Auto-exit after playback stalls this long, 0 disables (default: 8, max 86400)
+          --stall <seconds>     Auto-exit when playback stalls or never starts within this long, 0 disables (default: 8, max 86400)
           --watchdog <seconds>  Auto-exit if UI is unresponsive this long, 0 disables (default: 6, max 86400)
 
         The command returns immediately; the wallpaper keeps playing after the
@@ -79,8 +79,13 @@ struct RunCommand: Command {
             return nil
         }
         let videoURL = URL(fileURLWithPath: videoPath)
-        guard FileManager.default.fileExists(atPath: videoURL.path) else {
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: videoURL.path, isDirectory: &isDirectory) else {
             Console.error("File not found: \(videoURL.path)")
+            return nil
+        }
+        guard !isDirectory.boolValue else {
+            Console.error("Not a video file: \(videoURL.path)")
             return nil
         }
         guard isReadable(videoURL) else {

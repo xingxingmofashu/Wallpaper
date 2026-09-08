@@ -216,6 +216,8 @@ final class Wallpaper: NSObject {
 
     private var lastProgress = CMTime.zero
     private var frozenSeconds: TimeInterval = 0
+    private var pendingSeconds: TimeInterval = 0
+    private var hasPlayed = false
 
     private func startStallMonitor() {
         guard options.stallLimit > 0 else { return }
@@ -231,13 +233,23 @@ final class Wallpaper: NSObject {
         lastProgress = now
 
         let playing = player.timeControlStatus == .playing
-        if playing, delta < 0.01 {
-            frozenSeconds += 1
-            if frozenSeconds >= options.stallLimit {
-                exitWithError("Playback frozen for over \(Int(options.stallLimit)) seconds")
+        if playing {
+            hasPlayed = true
+            if delta < 0.01 {
+                frozenSeconds += 1
+                if frozenSeconds >= options.stallLimit {
+                    exitWithError("Playback frozen for over \(Int(options.stallLimit)) seconds")
+                }
+            } else {
+                frozenSeconds = 0
             }
         } else {
             frozenSeconds = 0
+            guard !hasPlayed else { return }
+            pendingSeconds += 1
+            if pendingSeconds >= options.stallLimit {
+                exitWithError("Playback did not start within \(Int(options.stallLimit)) seconds")
+            }
         }
     }
 
