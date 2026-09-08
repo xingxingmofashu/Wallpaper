@@ -1,0 +1,106 @@
+# vw
+
+Loop a video as your macOS desktop wallpaper from the terminal.
+
+```bash
+vw run ~/Videos/wallpaper.mov      # start (returns immediately)
+vw stop                            # stop
+```
+
+## Features
+
+- Plays any local video, looping, on **all screens** or only the main display
+- Detached daemon: keeps playing after the terminal closes; `vw run` exits immediately with `Started (PID n)`
+- Single-instance lock (`flock`); concurrent starts fail fast with a clear message
+- Self-protection: exits on decoder failure, playback stall (8 s by default) or main-thread freeze (6 s by default), instead of showing a frozen desktop forever
+- Stable across display sleep/wake, lock/unlock and resolution changes; windows are only rebuilt when the screen configuration actually changes
+- English-only CLI output
+
+## Requirements
+
+- Apple Silicon Mac, macOS 26.2+
+- Xcode (for `xcodebuild`) — required to build, not needed at runtime
+
+## Install
+
+```bash
+git clone <repo-url>
+cd Wallpaper
+./Scripts/install.sh
+```
+
+`Scripts/install.sh` builds the Release binary and installs it to the first writable
+location in this order: `$VW_PREFIX`, `/usr/local/bin` (sudo only if needed),
+`/opt/homebrew/bin`. It removes the previous binary before copying, because
+overwriting a signed binary in place (same inode) gets SIGKILLed by macOS on next launch.
+
+Uninstall:
+
+```bash
+./Scripts/install.sh --uninstall   # stops the instance, removes the binary and ~/.vw
+```
+
+## Usage
+
+```text
+vw run <video> [options]   play video wallpaper in background
+vw stop                    stop the running instance
+vw uninstall               show manual uninstall steps
+vw version                 show version
+vw help                    show full help
+```
+
+`vw <video>` (without `run`) also works as a shorthand.
+
+### run options
+
+| Option | Description | Default |
+|---|---|---|
+| `--single` | cover only the main display | all screens |
+| `--rate <0.1-1.0>` | cap playback rate to lower CPU/GPU load | `1.0` |
+| `--stall <seconds>` | auto-exit after playback stalls this long; `0` disables (max 86400) | `8` |
+| `--watchdog <seconds>` | auto-exit if the main thread is unresponsive this long; `0` disables (max 86400) | `6` |
+
+Examples:
+
+```bash
+vw run ~/Videos/wallpaper.mov --single --rate 0.5
+vw run ~/Videos/wallpaper.mov --stall 0 --watchdog 0   # disable auto-exit guards
+```
+
+## How it works
+
+- `vw run` re-executes itself via `posix_spawn` with `POSIX_SPAWN_SETSID`: the daemon
+  detaches from the terminal (survives close, SIGHUP ignored), stdin goes to `/dev/null`,
+  and stdout/stderr append to `~/.vw/vw.log`.
+- The daemon writes `~/.vw/vw.pid`; `vw stop` verifies the PID actually belongs to
+  `vw` (`proc_pidpath` on both sides) before sending `SIGTERM`.
+- A held `flock` on `~/.vw/vw.lock` is inherited by the daemon, so the single-instance
+  guarantee covers the whole daemon lifetime and releases automatically on exit or kill.
+- One borderless `NSWindow` per screen at the desktop window level with an
+  `AVPlayerLayer`; windows are rebuilt only when the screen configuration really changes.
+
+### Runtime files
+
+| Path | Purpose |
+|---|---|
+| `~/.vw/vw.pid` | PID of the running daemon |
+| `~/.vw/vw.lock` | single-instance lock |
+| `~/.vw/vw.log` | daemon output/errors (truncated at each start) |
+
+## Troubleshooting
+
+- `Another instance is running` → run `vw stop` first.
+- Wallpaper gone → the daemon probably exited; check `ps -p "$(cat ~/.vw/vw.pid)"`,
+  then start again with `vw run`. The reason for any abnormal exit is in `~/.vw/vw.log`.
+- The **lock screen** always shows the system's static wallpaper; that is a macOS
+  limitation. The video resumes on the desktop after unlock.
+
+## Development
+
+```bash
+xcodebuild -project Wallpaper.xcodeproj -scheme Wallpaper -configuration Debug build
+```
+
+Source layout: `Wallpaper/CLI` (command dispatch and subcommands), `Wallpaper/Core`
+(playback engine, daemonization, PID/lock files, signal handling).
