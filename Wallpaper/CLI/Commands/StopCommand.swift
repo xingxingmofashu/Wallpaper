@@ -1,19 +1,18 @@
 import Foundation
 
-/// 停止当前实例：`stop`。
 struct StopCommand: Command {
     let name = "stop"
-    let summary = "停止当前实例"
+    let summary = "Stop the running instance"
 
     func execute(arguments: [String]) -> Int32 {
         let pidFile = PIDFile.shared
         guard let pid = pidFile.pid else {
-            Console.info("没有正在运行的实例")
+            Console.info("No running instance")
             return 0
         }
 
         guard pidFile.isLiveSelf(pid) else {
-            Console.info("记录中的 PID \(pid) 并非本程序实例，已清理")
+            Console.info("Recorded PID \(pid) is not this program, cleaned up")
             pidFile.remove()
             return 0
         }
@@ -24,13 +23,13 @@ struct StopCommand: Command {
         while Date() < deadline {
             if !pidFile.isLiveSelf(pid) {
                 pidFile.remove()
-                Console.info("已停止")
+                Console.info("Stopped")
                 return 0
             }
             Thread.sleep(forTimeInterval: 0.1)
         }
 
-        Console.error("进程 \(pid) 未在 3 秒内退出，可尝试 `kill -9 \(pid)`")
+        Console.error("Process \(pid) did not exit within 3s, try `kill -9 \(pid)`")
         return 1
     }
 }

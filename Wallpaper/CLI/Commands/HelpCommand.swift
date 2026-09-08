@@ -1,24 +1,22 @@
 import Foundation
 
-/// 显示帮助：`help` / `-h`。
 struct HelpCommand: Command {
     let name = "help"
-    let summary = "显示帮助"
+    let summary = "Show help"
 
     func execute(arguments: [String]) -> Int32 {
         Console.info(usage())
         return 0
     }
 
-    /// 汇总生成完整帮助文本。
-    private func usage() -> String {
+    func usage() -> String {
         var lines = [
             Version.full,
             "",
-            "用法:",
-            "  \(Version.name) <命令> [参数]",
+            "Usage:",
+            "  \(Version.name) <command> [arguments]",
             "",
-            "命令:",
+            "Commands:",
         ]
         for command in CLI.commands {
             let padded = command.name.padding(toLength: 10, withPad: " ", startingAt: 0)
@@ -29,7 +27,7 @@ struct HelpCommand: Command {
             lines.append(run.optionsHelp)
         }
         lines.append("")
-        lines.append("示例:")
+        lines.append("Examples:")
         lines.append("  \(Version.name) run ~/Videos/wallpaper.mov")
         lines.append("  \(Version.name) run video.mov --single --rate 0.5")
         return lines.joined(separator: "\n")

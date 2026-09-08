@@ -1,7 +1,6 @@
 import Cocoa
 import AVFoundation
 
-/// 视频壁纸核心：在桌面层窗口循环播放视频，并内置保护。
 final class Wallpaper: NSObject {
     private let player: AVQueuePlayer
     private let options: RunOptions
@@ -17,7 +16,6 @@ final class Wallpaper: NSObject {
     private var isRunning = false
     private var isAsleep = false
 
-    /// 主线程心跳时间戳，供 watchdog 后台轮询判断 UI 是否卡死。
     private(set) var lastHeartbeat = Date()
 
     init(videoURL: URL, options: RunOptions) {
@@ -32,8 +30,6 @@ final class Wallpaper: NSObject {
     deinit {
         if isRunning { stop() }
     }
-
-    // MARK: - 生命周期
 
     func start() {
         guard !isRunning else { return }
@@ -67,8 +63,6 @@ final class Wallpaper: NSObject {
         teardownWindows()
     }
 
-    // MARK: - 系统事件
-
     private func observeSystemEvents() {
         NotificationCenter.default.addObserver(
             self, selector: #selector(screenParametersDidChange),
@@ -82,7 +76,10 @@ final class Wallpaper: NSObject {
 
     @objc private func screenParametersDidChange(_ note: Notification) {
         guard isRunning else { return }
-        rebuildWindows()
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.isRunning else { return }
+            self.rebuildWindows()
+        }
     }
 
     @objc private func screensDidSleep(_ note: Notification) {
@@ -97,14 +94,13 @@ final class Wallpaper: NSObject {
         player.play()
     }
 
-    // MARK: - 播放监控
-
-    /// AVPlayerLooper 每次循环都会换入新 item，只观察初始 item 会在首轮后失效，
-    /// 因此对 currentItem 做 KVO，item 变化时重新挂载通知。
     private func observeCurrentItem() {
         currentItemObservation = player.observe(\.currentItem, options: [.initial, .new]) {
             [weak self] _, _ in
-            self?.attachItemObservers()
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.currentItemObservation != nil else { return }
+                self.attachItemObservers()
+            }
         }
     }
 
@@ -118,7 +114,7 @@ final class Wallpaper: NSObject {
         ) { [weak self] note in
             let detail = (note.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? Error)?
                 .localizedDescription ?? "unknown"
-            self?.exitWithError("解码失败: \(detail)")
+            self?.exitWithError("Decode failed: \(detail)")
         }
         itemObserverTokens.append(failure)
 
@@ -126,7 +122,7 @@ final class Wallpaper: NSObject {
             forName: .AVPlayerItemPlaybackStalled, object: item, queue: .main
         ) { [weak self] _ in
             guard let self = self, self.options.stallLimit > 0 else { return }
-            self.exitWithError("播放停滞 (PlaybackStalled)")
+            self.exitWithError("Playback stalled")
         }
         itemObserverTokens.append(stalled)
 
@@ -137,8 +133,6 @@ final class Wallpaper: NSObject {
         }
         itemObserverTokens.append(didEnd)
     }
-
-    // MARK: - 窗口管理
 
     private func createWindows() {
         if options.singleScreen {
@@ -190,8 +184,6 @@ final class Wallpaper: NSObject {
         windows.removeAll()
     }
 
-    // MARK: - 保护机制
-
     private func startHeartbeat() {
         heartbeatTimer = repeatingTimer(interval: 0.5) { [weak self] in
             self?.lastHeartbeat = Date()
@@ -218,7 +210,7 @@ final class Wallpaper: NSObject {
         if playing, delta < 0.01 {
             frozenSeconds += 1
             if frozenSeconds >= options.stallLimit {
-                exitWithError("播放进度停滞超过 \(Int(options.stallLimit)) 秒")
+                exitWithError("Playback frozen for over \(Int(options.stallLimit)) seconds")
             }
         } else {
             frozenSeconds = 0
@@ -232,7 +224,7 @@ final class Wallpaper: NSObject {
             while let self = self {
                 Thread.sleep(forTimeInterval: 0.5)
                 if Date().timeIntervalSince(self.lastHeartbeat) > limit {
-                    self.exitFromBackground("UI 线程无响应超过 \(Int(limit)) 秒")
+                    self.exitFromBackground("Main thread unresponsive for over \(Int(limit)) seconds")
                 }
             }
         }
@@ -244,7 +236,6 @@ final class Wallpaper: NSObject {
         return timer
     }
 
-    /// 主线程致命错误：清理后退出。
     private func exitWithError(_ message: String) {
         stop()
         PIDFile.shared.remove()
@@ -252,7 +243,6 @@ final class Wallpaper: NSObject {
         exit(2)
     }
 
-    /// 后台线程致命错误：UI 可能已卡死，直接退出。
     private func exitFromBackground(_ message: String) {
         PIDFile.shared.remove()
         Console.error(message)

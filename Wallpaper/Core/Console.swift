@@ -1,6 +1,5 @@
 import Foundation
 
-/// 统一的控制台输出入口。
 enum Console {
     static func info(_ message: String) {
         FileHandle.standardOutput.write("\(message)\n".data(using: .utf8)!)
