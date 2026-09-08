@@ -14,6 +14,10 @@
   简体中文
 </p>
 
+<p align="center">
+  <a href="https://github.com/xingxingmofashu/Wallpaper/releases/latest"><img src=".github/assets/preview.png" alt="vw 壁纸预览" width="800" /></a>
+</p>
+
 </div>
 
 ---

@@ -14,6 +14,10 @@
   <a href="README.zh_CN.md">简体中文</a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/xingxingmofashu/Wallpaper/releases/latest"><img src=".github/assets/preview.png" alt="vw wallpaper preview" width="800" /></a>
+</p>
+
 </div>
 
 ---
