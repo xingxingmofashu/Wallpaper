@@ -1,6 +1,6 @@
 <div align="center">
 
-# vw
+# VideoWallpaper
 
 **Loop a video as your macOS desktop wallpaper from the terminal.**
 

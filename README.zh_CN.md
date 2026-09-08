@@ -1,6 +1,6 @@
 <div align="center">
 
-# vw
+# VideoWallpaper
 
 **在终端里把一段循环视频设为 macOS 桌面壁纸。**
 
