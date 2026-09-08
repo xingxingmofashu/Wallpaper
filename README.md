@@ -49,13 +49,6 @@ One line, no clone needed (downloads the latest release):
 curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash
 ```
 
-Pin a version or choose the install location with env vars:
-
-```bash
-VW_VERSION=v1.0.0 curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash
-VW_PREFIX=/opt/homebrew/bin curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash
-```
-
 Or build from source:
 
 ```bash

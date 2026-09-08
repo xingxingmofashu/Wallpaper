@@ -49,13 +49,6 @@ vw stop                            # 停止
 curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash
 ```
 
-指定版本或安装位置（环境变量）：
-
-```bash
-VW_VERSION=v1.0.0 curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash
-VW_PREFIX=/opt/homebrew/bin curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash
-```
-
 或从源码构建：
 
 ```bash
