@@ -4,9 +4,10 @@
 # Usage:
 #   scripts/install.sh             Build (Release) and install to /usr/local/bin/vw
 #   scripts/install.sh --uninstall Stop the instance and remove installed files
+#   VW_PREFIX=/some/dir scripts/install.sh   Install to a custom prefix
 set -euo pipefail
 
-DEST_DIR="/usr/local/bin"
+DEST_DIR="${VW_PREFIX:-/usr/local/bin}"
 DEST="$DEST_DIR/vw"
 APP_DIR="$HOME/.vw"
 
