@@ -1,5 +1,7 @@
 # vw
 
+[English](README.md) | 简体中文
+
 在终端里把一段循环视频设为 macOS 桌面壁纸。
 
 ```bash

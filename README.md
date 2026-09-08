@@ -1,5 +1,7 @@
 # vw
 
+English | [简体中文](README.zh_CN.md)
+
 Loop a video as your macOS desktop wallpaper from the terminal.
 
 ```bash
