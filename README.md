@@ -14,7 +14,7 @@
   <a href="README.zh_CN.md">简体中文</a>
 </p>
 
-![vw wallpaper preview](.github/assets/preview.mp4)
+[![vw wallpaper preview](https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/.github/assets/preview.jpg)](https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/.github/assets/preview.mp4)
 
 <p align="center"><sub>Preview artwork by <a href="https://www.wlop.art">WLOP</a></sub></p>
 
