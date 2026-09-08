@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/xingxingmofashu/Wallpaper/releases/latest"><img src=".github/assets/preview.jpg" alt="vw 壁纸预览" width="800" /></a>
+  <a href="https://github.com/xingxingmofashu/Wallpaper/releases/latest"><video src=".github/assets/preview.mp4" alt="vw 壁纸预览" width="800" autoplay muted loop playsinline></video></a>
 </p>
 
 <p align="center"><sub>预览图来源于艺术家 <a href="https://www.wlop.art">WLOP</a></sub></p>
