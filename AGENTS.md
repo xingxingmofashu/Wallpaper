@@ -36,6 +36,11 @@
 - The workflow asserts the tag equals `Version.number` in `VersionCommand.swift` - bump both together.
 - `Scripts/install.sh` is dual-mode: inside the repo it builds from source; without a repo (curl | bash) it downloads the release asset (`VW_VERSION` pins a version, default latest).
 
+## Branch protection
+
+- main requires the `build` status check (`.github/workflows/ci.yml`) and forbids force pushes and deletion. Admins bypass checks on direct pushes (`enforce_admins` off) - direct pushes print a "Bypassed rule violations" notice and still land.
+- The required check context must stay in sync with the job name in ci.yml - renaming the job silently breaks PR merging.
+
 ## Runtime files
 
 `~/.vw/vw.pid` (daemon PID, written by the daemon), `~/.vw/vw.lock` (flock), `~/.vw/vw.log` (daemon stdout/stderr).
