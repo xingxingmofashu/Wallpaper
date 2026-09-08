@@ -34,9 +34,9 @@ struct RunOptions {
             case "--rate":
                 options.rate = try nextValue("--rate") { (0.1...1.0).contains($0) }
             case "--stall":
-                options.stallLimit = try nextValue("--stall") { $0 >= 0 }
+                options.stallLimit = try nextValue("--stall") { $0 >= 0 && $0 <= 86400 }
             case "--watchdog":
-                options.watchdogLimit = try nextValue("--watchdog") { $0 >= 0 }
+                options.watchdogLimit = try nextValue("--watchdog") { $0 >= 0 && $0 <= 86400 }
             default:
                 throw OptionError(message: "Unknown option: \(args[index])")
             }
@@ -53,8 +53,8 @@ struct RunCommand: Command {
         Options:
           --single              Cover only the main display (default: all screens)
           --rate <0.1-1.0>      Max playback rate to lower CPU/GPU load (default: 1.0)
-          --stall <seconds>     Auto-exit after playback stalls this long, 0 disables (default: 8)
-          --watchdog <seconds>  Auto-exit if UI is unresponsive this long, 0 disables (default: 6)
+          --stall <seconds>     Auto-exit after playback stalls this long, 0 disables (default: 8, max 86400)
+          --watchdog <seconds>  Auto-exit if UI is unresponsive this long, 0 disables (default: 6, max 86400)
 
         The command returns immediately; the wallpaper keeps playing after the
         terminal is closed. Stop it with `vw stop`. Errors go to ~/.vw/vw.log.
@@ -97,9 +97,26 @@ struct RunCommand: Command {
         let pidFile = PIDFile.shared
         let dataDir = pidFile.url.deletingLastPathComponent()
         let logURL = dataDir.appendingPathComponent("vw.log")
+        let lockURL = dataDir.appendingPathComponent("vw.lock")
+
+        let lockFD = open(lockURL.path, O_CREAT | O_RDWR, 0o644)
+        guard lockFD >= 0 else {
+            Console.error("Failed to open \(lockURL.path): \(String(cString: strerror(errno)))")
+            return 1
+        }
+        defer { close(lockFD) }
+
+        guard flock(lockFD, LOCK_EX | LOCK_NB) == 0 else {
+            if errno == EWOULDBLOCK {
+                reportAlreadyRunning(pidFile)
+            } else {
+                Console.error("Failed to lock \(lockURL.path): \(String(cString: strerror(errno)))")
+            }
+            return 1
+        }
 
         if let existing = pidFile.pid, pidFile.isLiveSelf(existing) {
-            Console.error("Another instance is running (PID \(existing)), run `\(Version.name) stop` first")
+            reportAlreadyRunning(pidFile)
             return 1
         }
 
@@ -113,12 +130,20 @@ struct RunCommand: Command {
 
         do {
             let command = ["run", videoURL.path] + optionArguments(options)
-            let pid = try Daemon.spawn(detachedCommand: command, logURL: logURL)
+            let pid = try Daemon.spawn(detachedCommand: command, logURL: logURL, lockFD: lockFD)
             Console.info("Started (PID \(pid))")
             return 0
         } catch {
             Console.error("Failed to start: \(error.localizedDescription)")
             return 1
+        }
+    }
+
+    private func reportAlreadyRunning(_ pidFile: PIDFile) {
+        if let existing = pidFile.pid, pidFile.isLiveSelf(existing) {
+            Console.error("Another instance is running (PID \(existing)), run `\(Version.name) stop` first")
+        } else {
+            Console.error("Another instance is running, run `\(Version.name) stop` first")
         }
     }
 
@@ -128,9 +153,9 @@ struct RunCommand: Command {
         args.append("--rate")
         args.append(String(options.rate))
         args.append("--stall")
-        args.append(String(Int(options.stallLimit)))
+        args.append(String(options.stallLimit))
         args.append("--watchdog")
-        args.append(String(Int(options.watchdogLimit)))
+        args.append(String(options.watchdogLimit))
         return args
     }
 
