@@ -23,21 +23,36 @@ vw stop                            # 停止
 
 ## 安装
 
+一行命令，无需 clone（自动下载最新 Release）：
+
 ```bash
-git clone <仓库地址>
+curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash
+```
+
+指定版本或安装位置（环境变量）：
+
+```bash
+VW_VERSION=v1.0.0 curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash
+VW_PREFIX=/opt/homebrew/bin curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash
+```
+
+或从源码构建：
+
+```bash
+git clone https://github.com/xingxingmofashu/Wallpaper.git
 cd Wallpaper
 ./Scripts/install.sh
 ```
 
-`Scripts/install.sh` 会构建 Release 二进制并按以下顺序安装到第一个可写位置：
-`$VW_PREFIX`、`/usr/local/bin`（需要时才用 sudo）、`/opt/homebrew/bin`。
-安装前会先删除旧二进制再复制 —— 因为原地覆盖已签名的二进制（同 inode）会导致
-macOS 在下次启动时直接 SIGKILL。
+两种方式都会按以下顺序安装到第一个可写位置：`$VW_PREFIX`、`/usr/local/bin`
+（需要时才用 sudo）、`/opt/homebrew/bin`；安装前会先删除旧二进制再复制 ——
+因为原地覆盖已签名的二进制（同 inode）会导致 macOS 在下次启动时直接 SIGKILL。
 
 卸载：
 
 ```bash
-./Scripts/install.sh --uninstall   # 停止实例，删除二进制和 ~/.vw
+./Scripts/install.sh --uninstall                    # 在克隆的仓库内
+curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash -s -- --uninstall
 ```
 
 ## 使用
@@ -94,6 +109,8 @@ vw run ~/Videos/wallpaper.mov --stall 0 --watchdog 0   # 关闭自动退出保�
 - 壁纸消失 → daemon 大概率已退出；检查 `ps -p "$(cat ~/.vw/vw.pid)"` 后重新
   `vw run`，异常退出的原因记录在 `~/.vw/vw.log`。
 - **锁屏界面**始终显示系统静态壁纸，这是 macOS 的限制；解锁后桌面视频会继续播放。
+- 若用**浏览器**下载二进制（而非 curl），macOS Gatekeeper 可能拦截（quarantine 标记）；
+  用 `xattr -d com.apple.quarantine <文件>` 清除，或改用 curl 方式安装。
 
 ## 开发
 

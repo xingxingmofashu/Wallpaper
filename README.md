@@ -23,21 +23,37 @@ vw stop                            # stop
 
 ## Install
 
+One line, no clone needed (downloads the latest release):
+
 ```bash
-git clone <repo-url>
+curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash
+```
+
+Pin a version or choose the install location with env vars:
+
+```bash
+VW_VERSION=v1.0.0 curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash
+VW_PREFIX=/opt/homebrew/bin curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash
+```
+
+Or build from source:
+
+```bash
+git clone https://github.com/xingxingmofashu/Wallpaper.git
 cd Wallpaper
 ./Scripts/install.sh
 ```
 
-`Scripts/install.sh` builds the Release binary and installs it to the first writable
-location in this order: `$VW_PREFIX`, `/usr/local/bin` (sudo only if needed),
-`/opt/homebrew/bin`. It removes the previous binary before copying, because
-overwriting a signed binary in place (same inode) gets SIGKILLed by macOS on next launch.
+Either way the script installs to the first writable location in this order:
+`$VW_PREFIX`, `/usr/local/bin` (sudo only if needed), `/opt/homebrew/bin`, and removes
+the previous binary before copying, because overwriting a signed binary in place
+(same inode) gets SIGKILLed by macOS on next launch.
 
 Uninstall:
 
 ```bash
-./Scripts/install.sh --uninstall   # stops the instance, removes the binary and ~/.vw
+./Scripts/install.sh --uninstall                    # from a clone
+curl -fsSL https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/Scripts/install.sh | bash -s -- --uninstall
 ```
 
 ## Usage
@@ -95,6 +111,9 @@ vw run ~/Videos/wallpaper.mov --stall 0 --watchdog 0   # disable auto-exit guard
   then start again with `vw run`. The reason for any abnormal exit is in `~/.vw/vw.log`.
 - The **lock screen** always shows the system's static wallpaper; that is a macOS
   limitation. The video resumes on the desktop after unlock.
+- If you downloaded the binary with a **browser** instead of `curl`, macOS Gatekeeper
+  may block it (quarantine); remove the flag with `xattr -d com.apple.quarantine <file>`
+  or prefer the curl-based install.
 
 ## Development
 

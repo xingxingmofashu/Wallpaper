@@ -30,6 +30,12 @@
 - `fork()` is unavailable in Swift - use posix_spawn.
 - `kCGDesktopWindowLevel` and similar constants are not Swift-visible; use `CGWindowLevelForKey(.desktopWindow)`.
 
+## Release
+
+- Push tag `v*` -> `.github/workflows/release.yml` (runs-on macos-26) builds with `CODE_SIGNING_ALLOWED=NO` (the pbxproj pins a DEVELOPMENT_TEAM that does not exist on CI), ad-hoc signs (`codesign -f -s -`), uploads the fixed-name asset `vw-macos-arm64.tar.gz` and creates the GitHub release.
+- The workflow asserts the tag equals `Version.number` in `VersionCommand.swift` - bump both together.
+- `Scripts/install.sh` is dual-mode: inside the repo it builds from source; without a repo (curl | bash) it downloads the release asset (`VW_VERSION` pins a version, default latest).
+
 ## Runtime files
 
 `~/.vw/vw.pid` (daemon PID, written by the daemon), `~/.vw/vw.lock` (flock), `~/.vw/vw.log` (daemon stdout/stderr).
