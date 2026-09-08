@@ -1,7 +1,7 @@
 import Foundation
 
 enum Version {
-    static let number = "1.0.2"
+    static let number = "1.1.0"
     static let name = "vw"
     static let full = "\(name) \(number)"
 }
