@@ -14,7 +14,7 @@
   简体中文
 </p>
 
-[![vw 壁纸预览](https://raw.githubusercontent.com/xingxingmofashu/Wallpaper/main/.github/assets/preview.jpg)](https://github.com/xingxingmofashu/Wallpaper/blob/main/.github/assets/preview.mp4)
+https://github.com/user-attachments/assets/ba9da556-17c4-467a-b038-0a58b88e45d8
 
 <p align="center"><sub>预览图来源于艺术家 <a href="https://www.wlop.art">WLOP</a></sub></p>
 
