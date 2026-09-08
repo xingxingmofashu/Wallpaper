@@ -9,6 +9,7 @@ final class Wallpaper: NSObject {
     private var windows: [NSWindow] = []
     private var itemObserverTokens: [NSObjectProtocol] = []
     private var currentItemObservation: NSKeyValueObservation?
+    private var statusObservation: NSKeyValueObservation?
 
     private var heartbeatTimer: Timer?
     private var stallTimer: Timer?
@@ -52,6 +53,8 @@ final class Wallpaper: NSObject {
         NotificationCenter.default.removeObserver(self)
         currentItemObservation?.invalidate()
         currentItemObservation = nil
+        statusObservation?.invalidate()
+        statusObservation = nil
         itemObserverTokens.forEach { NotificationCenter.default.removeObserver($0) }
         itemObserverTokens.removeAll()
         heartbeatTimer?.invalidate()
@@ -108,6 +111,16 @@ final class Wallpaper: NSObject {
         itemObserverTokens.forEach { NotificationCenter.default.removeObserver($0) }
         itemObserverTokens.removeAll()
         guard let item = player.currentItem else { return }
+
+        statusObservation?.invalidate()
+        statusObservation = item.observe(\.status, options: [.initial, .new]) { [weak self] item, _ in
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.statusObservation != nil else { return }
+                guard item.status == .failed else { return }
+                let detail = item.error?.localizedDescription ?? "unknown"
+                self.exitWithError("Failed to load video: \(detail)")
+            }
+        }
 
         let failure = NotificationCenter.default.addObserver(
             forName: .AVPlayerItemFailedToPlayToEndTime, object: item, queue: .main

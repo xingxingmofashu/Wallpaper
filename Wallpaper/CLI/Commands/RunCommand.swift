@@ -83,6 +83,11 @@ struct RunCommand: Command {
             Console.error("File not found: \(videoURL.path)")
             return nil
         }
+        guard isReadable(videoURL) else {
+            Console.error("No permission to read file: \(videoURL.path)")
+            Console.error("If the file is in Downloads/Desktop/Documents, grant your terminal app access in System Settings > Privacy & Security > Files and Folders, or move the file to an unrestricted folder such as ~/Movies")
+            return nil
+        }
         let options: RunOptions
         do {
             options = try RunOptions.parse(Array(arguments.dropFirst()))
@@ -91,6 +96,13 @@ struct RunCommand: Command {
             return nil
         }
         return (videoURL, options)
+    }
+
+    private func isReadable(_ url: URL) -> Bool {
+        let fd = open(url.path, O_RDONLY | O_NONBLOCK)
+        guard fd >= 0 else { return false }
+        close(fd)
+        return true
     }
 
     private func startDetached(videoURL: URL, options: RunOptions) -> Int32 {
